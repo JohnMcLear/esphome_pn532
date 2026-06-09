@@ -95,6 +95,7 @@ class PN532 : public PollingComponent {
   void set_health_check_interval(uint32_t ms) { this->health_check_interval_ = ms; }
   void set_user_update_interval(uint32_t ms) { this->user_update_interval_ = ms; }
   void set_reset_pin(GPIOPin *reset_pin) { this->reset_pin_ = reset_pin; }
+  void set_irq_pin(GPIOPin *irq_pin) { this->irq_pin_ = irq_pin; }
   uint32_t user_update_interval_{1000};
   uint32_t backoff_ms_{0};
 
@@ -116,6 +117,7 @@ class PN532 : public PollingComponent {
   uint32_t health_check_interval_{60000};
   uint32_t last_health_check_{0};
   GPIOPin *reset_pin_{nullptr};
+  GPIOPin *irq_pin_{nullptr};
 
   void hardware_reset_();
   void process_removed_tags_(const std::vector<std::vector<uint8_t>> &new_uids);

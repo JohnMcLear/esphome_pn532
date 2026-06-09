@@ -1,0 +1,52 @@
+---
+esphome:
+  name: pn532-irq-test
+  friendly_name: PN532 IRQ Pin Test
+
+esp32:
+  board: esp32-c6-devkitc-1
+  variant: esp32c6
+  framework:
+    type: esp-idf
+
+logger:
+  level: VERY_VERBOSE
+  hardware_uart: USB_SERIAL_JTAG
+
+external_components:
+  - source:
+      type: local
+      path: components
+    components: [pn532, pn532_spi, pn532_i2c]
+    refresh: 0s
+
+i2c:
+  sda: GPIO21
+  scl: GPIO22
+
+pn532_i2c:
+  id: pn532_i2c_board
+  address: 0x24
+  update_interval: 2s
+  irq_pin: GPIO4
+  on_tag:
+    then:
+      - logger.log:
+          format: "I2C IRQ tag: %s"
+          args: ['x.c_str()']
+
+spi:
+  clk_pin: GPIO18
+  miso_pin: GPIO20
+  mosi_pin: GPIO23
+
+pn532_spi:
+  id: pn532_spi_board
+  cs_pin: GPIO5
+  update_interval: 2s
+  irq_pin: GPIO6
+  on_tag:
+    then:
+      - logger.log:
+          format: "SPI IRQ tag: %s"
+          args: ['x.c_str()']

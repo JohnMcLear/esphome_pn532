@@ -21,6 +21,7 @@ CONF_HEALTH_CHECK_INTERVAL = "health_check_interval"
 CONF_MAX_FAILED_CHECKS = "max_failed_checks"
 CONF_AUTO_RESET_ON_FAILURE = "auto_reset_on_failure"
 CONF_RF_FIELD_ENABLED = "rf_field_enabled"
+CONF_IRQ_PIN = "irq_pin"
 
 pn532_ns = cg.esphome_ns.namespace("pn532")
 PN532 = pn532_ns.class_("PN532", cg.PollingComponent)
@@ -61,6 +62,7 @@ PN532_SCHEMA = cv.Schema(
         cv.Optional(CONF_AUTO_RESET_ON_FAILURE, default=True): cv.boolean,
         cv.Optional(CONF_RF_FIELD_ENABLED, default=False): cv.boolean,
         cv.Optional(CONF_RESET_PIN): pins.gpio_output_pin_schema,
+        cv.Optional(CONF_IRQ_PIN): pins.gpio_input_pin_schema,
     }
 ).extend(cv.polling_component_schema("1s"))
 
@@ -84,6 +86,9 @@ async def setup_pn532(var, config):
     if CONF_RESET_PIN in config:
         reset_pin = await cg.gpio_pin_expression(config[CONF_RESET_PIN])
         cg.add(var.set_reset_pin(reset_pin))
+    if CONF_IRQ_PIN in config:
+        irq_pin = await cg.gpio_pin_expression(config[CONF_IRQ_PIN])
+        cg.add(var.set_irq_pin(irq_pin))
     for conf in config.get(CONF_ON_TAG, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID])
         cg.add(var.register_ontag_trigger(trigger))

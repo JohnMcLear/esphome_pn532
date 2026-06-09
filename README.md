@@ -49,6 +49,8 @@ spi:
 
 pn532_spi:
   cs_pin: GPIO5
+  irq_pin: GPIO4    # optional; replaces bus readiness polling with GPIO read
+  reset_pin: GPIO7  # optional; hardware reset on boot and re-init
   update_interval: 1s
   health_check_enabled: true
   health_check_interval: 60s
@@ -83,6 +85,8 @@ binary_sensor:
 - **`max_failed_checks`** (*Optional*, default `3`): Failures before marking component as unhealthy and attempting reset.
 - **`auto_reset_on_failure`** (*Optional*, default `true`): Attempt re-initialisation when unhealthy.
 - **`rf_field_enabled`** (*Optional*, default `false`): Keep the RF field on between polls. Leaving this `false` (default) reduces WiFi interference.
+- **`irq_pin`** (*Optional*): GPIO input wired to the PN532 IRQ pin (active-low). When configured, readiness checking in `loop()` becomes a GPIO read instead of an SPI/I2C bus transaction — near-zero overhead between scans. Common on Elechouse v3/v4 boards.
+- **`reset_pin`** (*Optional*): GPIO output wired to the PN532 RSTPD_N pin. When configured, a hardware reset is performed on boot and on every re-initialisation attempt. Common on Elechouse v3/v4 boards.
 - **`spi_id`** (*Optional*): Manually specify the SPI bus ID.
 - **`id`** (*Optional*): Manually specify the component ID.
 
@@ -96,6 +100,8 @@ i2c:
   scl: GPIO22
 
 pn532_i2c:
+  irq_pin: GPIO4    # optional; replaces bus readiness polling with GPIO read
+  reset_pin: GPIO7  # optional; hardware reset on boot and re-init
   update_interval: 1s
   health_check_enabled: true
   health_check_interval: 60s
@@ -114,10 +120,9 @@ binary_sensor:
 
 ### I²C Configuration Variables
 
-All the same options as SPI above, plus:
+All the same options as SPI above (including `irq_pin` and `reset_pin`), plus:
 
 - **`address`** (*Optional*, default `0x24`): I2C address of the PN532.
-- **`rf_field_enabled`** (*Optional*, default `false`): Keep the RF field on between polls.
 - **`i2c_id`** (*Optional*): Manually specify the I2C bus ID.
 
 ---

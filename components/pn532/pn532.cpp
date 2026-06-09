@@ -336,7 +336,8 @@ void PN532::loop() {
 
       NfcTagUid nfc_uid;
       nfc_uid.assign(target.uid.begin(), target.uid.end());
-      ESP_LOGD(TAG, "Found new tag '%s'", nfc::format_uid(nfc_uid).c_str());
+      char uid_buf[nfc::FORMAT_UID_BUFFER_SIZE];
+      ESP_LOGD(TAG, "Found new tag '%s'", nfc::format_uid_to(uid_buf, nfc_uid));
 
       if (next_task_ != READ) {
         if (next_task_ == CLEAN) {
@@ -374,6 +375,9 @@ void PN532::hardware_reset_() {
     this->reset_pin_->digital_write(true);
     delay(10);
   }
+  if (this->irq_pin_ != nullptr) {
+    this->irq_pin_->setup();
+  }
 }
 
 void PN532::process_removed_tags_(const std::vector<std::vector<uint8_t>> &new_uids) {
@@ -385,7 +389,8 @@ void PN532::process_removed_tags_(const std::vector<std::vector<uint8_t>> &new_u
       nfc_uid.assign(uid_copy.begin(), uid_copy.end());
       auto tag = make_unique<nfc::NfcTag>(nfc_uid);
 
-      ESP_LOGD(TAG, "Tag removed (threshold 5): %s", nfc::format_uid(nfc_uid).c_str());
+      char uid_buf[nfc::FORMAT_UID_BUFFER_SIZE];
+      ESP_LOGD(TAG, "Tag removed (threshold 5): %s", nfc::format_uid_to(uid_buf, nfc_uid));
       for (auto *trigger : this->triggers_ontagremoved_)
         trigger->process(tag);
       for (auto uit = this->current_uids_.begin(); uit != this->current_uids_.end(); ++uit) {
@@ -399,7 +404,8 @@ void PN532::process_removed_tags_(const std::vector<std::vector<uint8_t>> &new_u
       if (it->missing_count > 0) {
         NfcTagUid nfc_uid;
         nfc_uid.assign(it->uid.begin(), it->uid.end());
-        ESP_LOGD(TAG, "Tag %s missing, count %d/5", nfc::format_uid(nfc_uid).c_str(), it->missing_count);
+        char uid_buf[nfc::FORMAT_UID_BUFFER_SIZE];
+        ESP_LOGD(TAG, "Tag %s missing, count %d/5", nfc::format_uid_to(uid_buf, nfc_uid), it->missing_count);
       }
       ++it;
     }
@@ -465,7 +471,8 @@ enum PN532ReadReady PN532::read_ready_(bool block) {
     this->rd_start_time_ = millis();
   }
   while (true) {
-    if (this->is_read_ready()) {
+    bool hw_ready = (this->irq_pin_ != nullptr) ? !this->irq_pin_->digital_read() : this->is_read_ready();
+    if (hw_ready) {
       this->rd_latency_ms_ = millis() - this->rd_start_time_;
       this->rd_ready_ = READY;
       break;
@@ -585,6 +592,10 @@ bool PN532::reinit_() {
 void PN532::dump_config() {
   ESP_LOGCONFIG(TAG, "PN532:");
   LOG_UPDATE_INTERVAL(this);
+  if (this->irq_pin_ != nullptr)
+    LOG_PIN("  IRQ Pin: ", this->irq_pin_);
+  if (this->reset_pin_ != nullptr)
+    LOG_PIN("  Reset Pin: ", this->reset_pin_);
   for (auto *child : this->binary_sensors_)
     LOG_BINARY_SENSOR("  ", "Tag", child);
 }

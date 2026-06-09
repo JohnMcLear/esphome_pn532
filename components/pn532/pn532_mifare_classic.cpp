@@ -25,7 +25,8 @@ std::unique_ptr<nfc::NfcTag> PN532::read_mifare_classic_tag_(uint8_t tg, std::ve
   if (authenticated) {
     std::vector<uint8_t> data;
     if (this->read_mifare_classic_block_(tg, current_block, data)) {
-      ESP_LOGD(TAG, "Block %d data: %s", current_block, nfc::format_bytes(data).c_str());
+      char fmt_buf[nfc::FORMAT_BYTES_BUFFER_SIZE];
+      ESP_LOGD(TAG, "Block %d data: %s", current_block, nfc::format_bytes_to(fmt_buf, data));
       if (!nfc::decode_mifare_classic_tlv(data, message_length, message_start_index)) {
         return make_unique<nfc::NfcTag>(nfc_uid, nfc::ERROR);
       }
@@ -88,7 +89,8 @@ bool PN532::read_mifare_classic_block_(uint8_t tg, uint8_t block_num, std::vecto
   }
   data.erase(data.begin());
 
-  ESP_LOGVV(TAG, " Block %d: %s", block_num, nfc::format_bytes(data).c_str());
+  char fmt_buf[nfc::FORMAT_BYTES_BUFFER_SIZE];
+  ESP_LOGVV(TAG, " Block %d: %s", block_num, nfc::format_bytes_to(fmt_buf, data));
   return true;
 }
 

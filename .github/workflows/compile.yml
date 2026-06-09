@@ -20,6 +20,7 @@ jobs:
         config:
           - ci-test-spi.yaml
           - ci-test-i2c.yaml
+          - ci-test-irq.yaml
 
     steps:
       - name: Checkout repository
