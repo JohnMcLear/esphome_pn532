@@ -77,7 +77,7 @@ bool PN532::read_mifare_ultralight_bytes_(uint8_t tg, uint8_t start_page, uint16
     }
   }
 
-  ESP_LOGVV(TAG, "Data read: %s", nfc::format_bytes(data).c_str());
+  ESP_LOGVV(TAG, "Data read: %s", nfc::format_bytes_to(data).c_str());
 
   return true;
 }
